@@ -1,0 +1,17 @@
+# Ignore IDE files (like IntelliJ, Eclipse, etc.)
+.idea/
+*.iml
+
+# Ignore compiled files
+*.class
+
+# Ignore log files
+*.log
+
+# Ignore output directories
+/target/
+/output/
+
+# Ignore Hadoop specific files
+._SUCCESS.crc
+.part-r-00000.crc

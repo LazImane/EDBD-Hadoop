@@ -1,0 +1,11 @@
+PIN_ID,CREATOR_USER_ID,CREATED_AT,PIN_TYPE,TAGS_LIST,IS_PROMOTED,MEDIA_FORMAT,EXTERNAL_URL_DOMAIN,CONTENT_LANGUAGE,PIN_TITLE,NB_SAVES
+5001,1001,"15/12/24 10:30:00,000000",Product,"fashion,summer,dress",1,Image,shopify.com,en,Summer Fashion Trends 2025,1234
+5002,1002,"18/12/24 14:20:00,000000",Recipe,"food,dinner,italian",0,Image,foodblog.com,en,Easy Pasta Recipe,567
+5003,1003,"20/12/24 09:15:00,000000",DIY,"craft,home,decor",1,Video,etsy.com,en,DIY Home Decoration Ideas,2345
+5004,1004,"22/12/24 16:45:00,000000",Product,"electronics,gadgets",1,Image,amazon.com,de,Latest Tech Gadgets,3456
+5005,1005,"28/12/24 11:00:00,000000",Fashion,"shoes,sneakers,sport",1,Image,nike.com,en,New Running Shoes Collection,4567
+5006,1006,"02/01/25 13:30:00,000000",Travel,"vacation,beach,tropical",0,Image,travelblog.com,en,Top Beach Destinations,890
+5007,1007,"04/01/25 15:20:00,000000",Product,"beauty,skincare",1,Video,sephora.com,fr,Winter Skincare Routine,1678
+5008,1008,"06/01/25 10:10:00,000000",Fitness,"workout,gym,health",0,Video,fitnessblog.com,en,30-Day Fitness Challenge,2890
+5009,1009,"08/01/25 12:40:00,000000",Product,"furniture,home",1,Image,ikea.com,en,Modern Living Room Ideas,3234
+5010,1010,"10/01/25 14:50:00,000000",Recipe,"dessert,baking,cake",0,Image,bakingblog.com,de,Chocolate Cake Recipe,1456

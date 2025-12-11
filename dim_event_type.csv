@@ -1,6 +1,0 @@
-EVENT_TYPE_ID,EVENT_TYPE_NAME,EVENT_CATEGORY,IS_MONETISABLE,CONVERSION_CREDIT,DEFAULT_VALUE,DESCRIPTION
-PAGE_VISIT,Page Visit,Engagement,0,,0,User visited a product page
-ADD_TO_CART,Add to Cart,Conversion,1,Last-click,0,User added item to shopping cart
-CHECKOUT,Checkout Started,Conversion,1,Last-click,0,User started checkout process
-PURCHASE,Purchase,Conversion,1,Last-click,50,User completed purchase
-SIGNUP,User Signup,Engagement,1,First-click,10,New user signed up

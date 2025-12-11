@@ -100,7 +100,6 @@ public class Join {
         job.setInputFormatClass(TextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
 
-        // --- MULTIPLE INPUTS (ICI c’est bien fait maintenant) ---
         MultipleInputs.addInputPath(job,
                 new Path("input-join/customers.tbl"),
                 TextInputFormat.class,

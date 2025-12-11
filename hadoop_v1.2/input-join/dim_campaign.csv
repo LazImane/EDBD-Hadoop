@@ -1,0 +1,7 @@
+CAMPAIGN_ID,ADVERTISER_ID,CAMPAIGN_NAME,OBJECTIVE,START_DATE,END_DATE,BUDGET,BID_STRATEGY,TARGETING_SUMMARY,STATUS,PLACEMENT_TYPE
+3001,2001,Summer Sale 2025,Conversions,01/01/2025,31/01/2025,50000,CPC,"US, UK, Female, 25-44",Active,Feed
+3002,2002,Electronics Launch,Awareness,01/01/2025,28/02/2025,100000,CPM,"Global, Tech enthusiasts",Active,Video
+3003,2003,Holiday Crafts,Traffic,01/12/2024,15/01/2025,15000,CPC,"US, Female, 25-54",Completed,Feed
+3004,2004,New Year Fitness,Conversions,01/01/2025,31/01/2025,80000,CPA,"US, UK, Both, 18-44",Active,Shopping
+3005,2005,Beauty Essentials,Conversions,05/01/2025,05/02/2025,35000,CPC,"FR, Female, 25-44",Active,Feed
+3006,2006,Home Makeover,Awareness,01/01/2025,31/03/2025,120000,CPM,"Europe, 25-54",Active,Video

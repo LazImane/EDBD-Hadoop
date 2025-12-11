@@ -1,0 +1,477 @@
+# Hadoop MapReduce - Projet Big Data
+
+## Vue d'ensemble
+
+Ce projet implémente des requêtes analytiques avec Hadoop MapReduce pour le traitement de données à grande échelle. Il y a deux parties principales : des exercices de préparation pour comprendre les bases, et l'application sur nos données de projet (conversions publicitaires).
+
+**Auteurs:** Imane LAZIZI, Kanzy YOUSSEF  
+**Date:** Décembre 2025
+
+---
+
+## Structure du projet
+
+Le projet contient plusieurs programmes Java pour différents types d'analyses. Chaque programme suit la structure MapReduce classique avec une classe Mapper et une classe Reducer.
+
+---
+
+## Partie 1 - Exercices de préparation
+
+### WordCount.java
+
+**Objectif:** Compter la fréquence des mots dans un texte avec filtres
+
+**Fichiers d'entrée:** `input-wordCount/`  
+**Fichiers de sortie:** `output/wordCount-{timestamp}`
+
+**Ce que ça fait:**
+- Le Mapper lit chaque ligne, met tout en minuscules, enlève la ponctuation
+- Il garde seulement les mots qui ont plus de 4 lettres
+- Le Reducer compte les occurrences et garde seulement les mots qui apparaissent au moins 10 fois
+
+**Requête SQL équivalente:**
+```sql
+SELECT word, COUNT(*) as count
+FROM words
+WHERE LENGTH(word) > 4
+GROUP BY word
+HAVING COUNT(*) >= 10;
+```
+
+**Résultat:** Le mot le plus fréquent dans notre texte est "article" avec 170 occurrences.
+
+---
+
+### GroupBy.java
+
+**Objectif:** Calculer le profit total par client
+
+**Fichiers d'entrée:** `input-groupBy/superstore.csv`  
+**Fichiers de sortie:** `output/groupBy-{timestamp}`
+
+**Ce que ça fait:**
+- Le Mapper extrait le Customer_ID (colonne 5) et le Profit (colonne 20)
+- Il émet des paires (Customer_ID, Profit)
+- Le Reducer somme tous les profits pour chaque client
+
+**Requête SQL équivalente:**
+```sql
+SELECT Customer_ID, SUM(Profit) AS total_profit
+FROM superstore
+GROUP BY Customer_ID;
+```
+
+---
+
+### GroupByCommande.java
+
+**Objectif:** Analyser les commandes - compter les produits distincts et la quantité totale
+
+**Fichiers d'entrée:** `input-groupBy/superstore.csv`  
+**Fichiers de sortie:** `output/groupBy-commande-{timestamp}`
+
+**Ce que ça fait:**
+- Le Mapper extrait OrderID, ProductID et Quantity
+- Il émet (OrderID, "quantity,ProductID")
+- Le Reducer utilise un HashSet pour compter les produits distincts et additionne toutes les quantités
+
+**Requête SQL équivalente:**
+```sql
+SELECT Order_ID,
+       COUNT(DISTINCT Product_ID) AS distinct_products,
+       SUM(Quantity) AS total_quantity
+FROM superstore
+GROUP BY Order_ID;
+```
+
+---
+
+### Join.java
+
+**Objectif:** Joindre les tables customers et orders
+
+**Fichiers d'entrée:** 
+- `input-join/customers.tbl`
+- `input-join/orders.tbl`
+
+**Fichiers de sortie:** `output/join-{timestamp}`
+
+**Ce que ça fait:**
+- On utilise MultipleInputs pour avoir deux Mappers différents
+- customerMapper émet (customer_id, "customers:name")
+- orderMapper émet (customer_id, "orders:comment")
+- Le Reducer fait le join en associant chaque client avec ses commentaires
+
+**Requête SQL équivalente:**
+```sql
+SELECT c.name, o.comment
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id;
+```
+
+---
+
+### TopkWordCount.java
+
+**Objectif:** Trouver les K mots les plus fréquents
+
+**Fichiers d'entrée:** `input-wordCount/`  
+**Fichiers de sortie:** `output/TopkWordCount-{timestamp}`
+
+**Ce que ça fait:**
+- Comme WordCount mais le Reducer garde seulement les K mots les plus fréquents
+- Utilise une TreeMap pour trier automatiquement
+- On peut passer K en argument (par défaut K=10)
+
+**Requête SQL équivalente:**
+```sql
+SELECT word, COUNT(*) as count
+FROM words
+GROUP BY word
+ORDER BY count DESC
+LIMIT k;
+```
+
+**Comment lancer:** `mvn exec:java -Dexec.mainClass="TopkWordCount" -Dexec.args="20"`
+
+---
+
+### TriAvecComparaison.java
+
+**Objectif:** Démonstration de tri personnalisé avec des comparateurs
+
+**Fichiers d'entrée:** `input-groupBy/`  
+**Fichiers de sortie:** `output/9-TriAvecComparaison-{timestamp}`
+
+**Ce que ça fait:**
+- Montre comment créer un comparateur personnalisé
+- Inverse l'ordre de tri pendant la phase de shuffle
+- C'est surtout un exemple pour comprendre comment Hadoop trie les données
+
+---
+
+## Partie 2 - Requêtes sur le projet
+
+### Requête 1: Top marchands par pays
+
+Cette requête nécessite 2 programmes qui s'exécutent en séquence.
+
+#### Join_merchant_fc.java
+
+**Objectif:** Joindre fact_conversion avec dim_merchant
+
+**Fichiers d'entrée:**
+- `input-join/fact_conversion.csv`
+- `input-join/dim_merchant.csv`
+
+**Fichiers de sortie:** `output/join-merchant-fc-{timestamp}`
+
+**Ce que ça fait:**
+- factConversionMapper émet (merchant_id, "fact:date|value")
+- merchantMapper émet (merchant_id, "merchants:name|country")
+- Le Reducer fait le join sur merchant_id
+
+**Sortie:** merchant_name|country → date|conversion_value
+
+---
+
+#### GroupBymerchant.java
+
+**Objectif:** Agréger les revenus par marchand et pays
+
+**Fichiers d'entrée:** `input-groupBy-merchant/` (sortie du join précédent)  
+**Fichiers de sortie:** `output/groupBy-merchant-{timestamp}`
+
+**Ce que ça fait:**
+- Le Mapper lit les données jointes et filtre par date (optionnel)
+- Il émet (merchant|country, revenue)
+- Le Reducer somme tous les revenus
+
+**Requête SQL finale:**
+```sql
+SELECT merchant_name, country, SUM(conversion_value) AS total_revenue
+FROM fact_conversion fc
+JOIN dim_merchant m ON fc.merchant_id = m.merchant_id
+WHERE date_id BETWEEN 20251201 AND 20251207
+GROUP BY merchant_name, country;
+```
+
+**Pipeline:** Join_merchant_fc.java → GroupBymerchant.java
+
+---
+
+### Requête 2: Revenus par catégorie et campagne
+
+Cette requête est la plus complexe, elle nécessite 3 programmes en séquence.
+
+#### Join_category_fc.java
+
+**Objectif:** Joindre conversions avec catégories
+
+**Fichiers d'entrée:**
+- `input-join/fact_conversion.csv`
+- `input-join/dim_category.csv`
+
+**Fichiers de sortie:** `output/join_category_fc-{timestamp}`
+
+**Ce que ça fait:**
+- factConversionMapper émet (category_id, "fact:value|campaign_id")
+- categoryMapper émet (category_id, "category:name")
+- Le Reducer fait le join
+
+**Sortie:** category_name|campaign_id → conversion_value
+
+---
+
+#### Join_category_campaign_fc.java
+
+**Objectif:** Ajouter les informations de campagne
+
+**Fichiers d'entrée:**
+- `input-join/joined_category_fc.csv` (sortie du join précédent)
+- `input-join/dim_campaign.csv`
+
+**Fichiers de sortie:** `output/Join_category_campaign_fc-{timestamp}`
+
+**Ce que ça fait:**
+- factConversionMapper parse la sortie précédente et émet (campaign_id, "fact:value,category")
+- campaignMapper émet (campaign_id, "campaign:name")
+- Le Reducer fait le deuxième join
+
+**Sortie:** category_name|campaign_name → conversion_value
+
+---
+
+#### GroupByCategoryCampaign.java
+
+**Objectif:** Agréger les revenus et compter les conversions
+
+**Fichiers d'entrée:** `input-groupBy/category_campaign.csv`  
+**Fichiers de sortie:** `output/groupBy-category-campaign-{timestamp}`
+
+**Ce que ça fait:**
+- Le Mapper émet (category|campaign, revenue)
+- Le Reducer calcule SUM(revenue) et COUNT(*)
+
+**Requête SQL finale:**
+```sql
+SELECT c.category_name, p.campaign_name,
+       SUM(fc.conversion_value) AS total_revenue,
+       COUNT(*) AS conversion_count
+FROM fact_conversion fc
+JOIN dim_category c ON fc.category_id = c.category_id
+JOIN dim_campaign p ON fc.campaign_id = p.campaign_id
+GROUP BY c.category_name, p.campaign_name;
+```
+
+**Pipeline:** Join_category_fc.java → Join_category_campaign_fc.java → GroupByCategoryCampaign.java
+
+---
+
+### Requête 3: Performance utilisateurs par cohorte et pays
+
+Cette requête nécessite 2 programmes en séquence.
+
+#### Join_user_fc.java
+
+**Objectif:** Joindre conversions avec utilisateurs
+
+**Fichiers d'entrée:**
+- `input-join/fact_conversion.csv`
+- `input-join/dim_user.csv`
+
+**Fichiers de sortie:** `output/join-user-fc-{timestamp}`
+
+**Ce que ça fait:**
+- factConversionMapper émet (user_id, "fact:value")
+- userMapper émet (user_id, "users:id|cohort_month|country")
+- Le Reducer fait le join
+
+**Sortie:** user_id|cohort_month|country → conversion_value
+
+---
+
+#### GroupByUserCohortMonthCountry.java
+
+**Objectif:** Calculer les utilisateurs distincts et les revenus
+
+**Fichiers d'entrée:** `input-groupBy/user_month_country.csv`  
+**Fichiers de sortie:** `output/groupBy-UserCohortMonthCountry-{timestamp}`
+
+**Ce que ça fait:**
+- Le Mapper émet (country|cohort_month, "user_id,revenue")
+- Le Reducer utilise un HashSet pour COUNT(DISTINCT user_id) et somme les revenus
+
+**Requête SQL finale:**
+```sql
+SELECT u.country, u.cohort_month,
+       COUNT(DISTINCT u.user_id) AS distinct_users,
+       SUM(fc.conversion_value) AS total_revenue
+FROM fact_conversion fc
+JOIN dim_user u ON fc.user_id = u.user_id
+GROUP BY u.country, u.cohort_month;
+```
+
+**Pipeline:** Join_user_fc.java → GroupByUserCohortMonthCountry.java
+
+---
+
+## Requêtes Snapshot (Aspect secondaire)
+
+Pour l'aspect secondaire, on a créé une table snapshot simplifiée qui contient déjà des agrégations.
+
+### Requête Snapshot 1: Revenue total par marchand
+
+**Objectif:** Calculer le revenu total pour chaque marchand
+
+**Requête SQL:**
+```sql
+SELECT merchant_ID, SUM(total_revenue) AS merchant_revenue
+FROM snapshot_fact_conv
+GROUP BY merchant_ID;
+```
+
+**Implémentation:**
+- Le Mapper émet (merchant_ID, total_revenue)
+- Le Reducer somme tous les revenus
+
+### Requête Snapshot 2: Engagement total par campagne
+
+**Objectif:** Calculer le nombre total de conversions par campagne
+
+**Requête SQL:**
+```sql
+SELECT campaign_ID, SUM(total_conversions) AS campaign_engagement
+FROM snapshot_fact_conv
+GROUP BY campaign_ID;
+```
+
+**Implémentation:**
+- Le Mapper émet (campaign_ID, total_conversions)
+- Le Reducer somme toutes les conversions
+
+Ces deux requêtes utilisent le même pattern de GroupBy qu'on a vu dans les exercices.
+
+---
+
+## Comment exécuter les programmes
+
+### Prérequis
+- Java 11
+- Hadoop (mode standalone)
+- Maven pour les dépendances
+
+### Configuration
+
+Si vous avez des problèmes avec Kerberos, ajoutez cette variable d'environnement:
+```bash
+export HADOOP_USER_NAME=votre_username
+```
+
+### Compilation et exécution
+
+Pour compiler tout le projet:
+```bash
+mvn clean compile
+```
+
+Pour lancer un programme spécifique (exemple avec WordCount):
+```bash
+mvn exec:java -Dexec.mainClass="WordCount"
+```
+
+### Ordre d'exécution pour les requêtes complexes
+
+**Requête 1 (Merchants):**
+```bash
+mvn exec:java -Dexec.mainClass="Join_merchant_fc"
+# Copier le résultat dans input-groupBy-merchant/
+mvn exec:java -Dexec.mainClass="GroupBymerchant"
+```
+
+**Requête 2 (Category-Campaign):**
+```bash
+mvn exec:java -Dexec.mainClass="Join_category_fc"
+# Copier le résultat dans input-join/joined_category_fc.csv
+mvn exec:java -Dexec.mainClass="Join_category_campaign_fc"
+# Copier le résultat dans input-groupBy/category_campaign.csv
+mvn exec:java -Dexec.mainClass="GroupByCategoryCampaign"
+```
+
+**Requête 3 (User Cohort):**
+```bash
+mvn exec:java -Dexec.mainClass="Join_user_fc"
+# Copier le résultat dans input-groupBy/user_month_country.csv
+mvn exec:java -Dexec.mainClass="GroupByUserCohortMonthCountry"
+```
+
+---
+
+## Structure des données
+
+### Tables de dimension
+
+**dim_user:**
+- user_id (clé primaire)
+- user_name
+- cohort_month
+- country
+
+**dim_merchant:**
+- merchant_id (clé primaire)
+- merchant_code
+- merchant_name
+- merchant_category
+- country
+
+**dim_category:**
+- category_id (clé primaire)
+- category_name
+
+**dim_campaign:**
+- campaign_id (clé primaire)
+- campaign_code
+- campaign_name
+
+### Table de faits
+
+**fact_conversion:**
+- conversion_id (clé primaire)
+- conversion_date_id
+- date_id
+- user_id (clé étrangère)
+- device_id (clé étrangère)
+- campaign_id (clé étrangère)
+- merchant_id (clé étrangère)
+- category_id (clé étrangère)
+- click_id
+- conversion_value
+
+### Table snapshot
+
+**snapshot_fact_conv:**
+- merchant_ID
+- campaign_ID
+- total_revenue
+- total_conversions
+- snapshot_date
+
+---
+
+## Problèmes fréquents
+
+**Le programme ne trouve pas les fichiers:**
+- Vérifiez les chemins INPUT_PATH et OUTPUT_PATH dans le code
+- Assurez-vous que les dossiers d'entrée existent et contiennent les données
+
+**Erreur "output directory already exists":**
+- Normal, Hadoop refuse d'écraser les données existantes
+- Le timestamp dans OUTPUT_PATH règle ce problème automatiquement
+
+**Logs illisibles:**
+- Les vrais résultats sont dans le dossier output/, pas dans la console
+- Cherchez les fichiers part-r-00000 dans les dossiers de sortie
+
+**Problème avec Java version:**
+- Le projet utilise Java 11
+- Dans IntelliJ: File > Project Structure > Project SDK > choisir Java 11

@@ -1,9 +1,0 @@
-MERCHANT_ID,DOMAIN,MERCHANT_NAME,INDUSTRY,COUNTRY,STORE_CURRENCY,INTEGRATION_METHOD,LIFETIME_SPEND_EST,AVG_ORDER_VALUE_EST,MERCHANT_TIER,CONTACT_REGION,
-2001,shopify.com,Fashion Boutique,Fashion,US,USD,API,500000,75,5,Premium,North America
-2002,amazon.com,Amazon Marketplace,Electronics,US,USD,API,10000000,125,Enterprise,Global,
-2003,etsy.com,Craft Store,Handmade,US,USD,Pixel,250000,45,Standard,North America,
-2004,nike.com,Nike Official,Sportswear,US,USD,API,2000000,150,Premium,Global,
-2005,sephora.com,Sephora Beauty,Beauty,FR,EUR,API,800000,65,Premium,Europe,
-2006,ikea.com,IKEA Furniture,Furniture,SE,EUR,Pixel,1500000,200,Enterprise,Global,
-2007,zara.com,Zara Fashion,Fashion,ES,EUR,API,1200000,85,Premium,Europe,
-2008,walmart.com,Walmart,Retail,US,USD,Pixel,5000000,95,Enterprise,North America,

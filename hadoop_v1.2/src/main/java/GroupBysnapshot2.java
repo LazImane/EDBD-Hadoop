@@ -60,7 +60,7 @@ public class GroupBysnapshot2 {
             //String profit = columns[20].trim();
             // 2 et 11
             String campaign = columns[1].trim();
-            String convinstring = columns[4].trim();
+            String convinstring = columns[5].trim();
             if (Arrays.equals(columns, emptyWords))
                 return;
             double conv = Double.parseDouble(convinstring);
